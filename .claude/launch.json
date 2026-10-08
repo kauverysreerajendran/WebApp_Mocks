@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tailor-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 3100,
+      "autoPort": true
+    },
+    {
+      "name": "tailor-api",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--app-dir", "backend", "--port", "8100"],
+      "port": 8100,
+      "env": {
+        "DATABASE_URL": "sqlite:///./backend/dev.db",
+        "CORS_ORIGINS": "http://localhost:3100,http://localhost:3000"
+      }
+    }
+  ]
+}

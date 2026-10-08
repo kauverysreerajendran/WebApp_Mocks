@@ -1,10 +1,27 @@
+# Dependencies & builds
 node_modules/
+dist/
+build/
+
+# Environment (keep the templates)
 .env
 .env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Local data — never commit uploaded KYC documents or dev databases
+backend/uploads/
+*.db
+*.db.bak
+
+# OS / editor
 .DS_Store
 Thumbs.db
 *.log
-dist/
-build/
 .vscode/
 .idea/
