@@ -2,7 +2,7 @@
 
 import { Menu, Search, UserRound, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { routes } from "@/config/routes";
 import { strings } from "@/i18n";
@@ -10,6 +10,7 @@ import { useSession } from "@/lib/auth/session";
 import { cn } from "@/lib/cn";
 import { Button, ButtonLink } from "../ui/Button";
 import { CustomerAuthDialog, type CustomerAuthMode } from "@/features/auth/CustomerAuthDialog";
+import { TailorAuthDialog } from "@/features/tailor/TailorAuthDialog";
 import { LoginMenu, useLoginOptions } from "./LoginMenu";
 import { Logo } from "./Logo";
 
@@ -34,6 +35,36 @@ export function SiteHeader() {
   const initial = (session?.user.name ?? "").trim().charAt(0).toUpperCase();
   const loginOptions = useLoginOptions();
   const [authMode, setAuthMode] = useState<CustomerAuthMode | null>(null);
+  const [tailorLogin, setTailorLogin] = useState(false);
+  const router = useRouter();
+
+  // `?login=customer|tailor` (redirects, sign-out, old links) opens the popup over this page.
+  const params = useSearchParams();
+  const loginParam = params.get("login");
+  const [seenParam, setSeenParam] = useState<string | null>(null);
+  if (loginParam !== seenParam) {
+    setSeenParam(loginParam);
+    if (loginParam === "customer") setAuthMode("login");
+    if (loginParam === "tailor") setTailorLogin(true);
+  }
+  const clearParam = () => {
+    if (loginParam) router.replace(pathname, { scroll: false });
+  };
+  const closeCustomer = () => {
+    setAuthMode(null);
+    clearParam();
+  };
+  const closeTailor = () => {
+    setTailorLogin(false);
+    clearParam();
+  };
+  /** After customer sign-in, continue to `?next=` (same-site paths only) or stay on this page. */
+  const customerDone = () => {
+    const next = params.get("next");
+    setAuthMode(null);
+    if (next?.startsWith("/") && !next.startsWith("//")) router.replace(next);
+    else clearParam();
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -101,7 +132,7 @@ export function SiteHeader() {
             </Link>
           ) : (
             <>
-              <LoginMenu className="hidden md:block" onCustomer={() => setAuthMode("login")} />
+              <LoginMenu className="hidden md:block" onCustomer={() => setAuthMode("login")} onTailor={() => setTailorLogin(true)} />
               <Button size="sm" className="hidden min-w-18 md:inline-flex" onClick={() => setAuthMode("signup")}>
                 {strings.nav.customer.signUp}
               </Button>
@@ -137,6 +168,9 @@ export function SiteHeader() {
                     if (!signedIn && l.href === routes.login) {
                       e.preventDefault();
                       setAuthMode("login");
+                    } else if (!signedIn && l.href === routes.tailor.login) {
+                      e.preventDefault();
+                      setTailorLogin(true);
                     }
                   }}
                   aria-current={isActive(l.href) ? "page" : undefined}
@@ -157,7 +191,8 @@ export function SiteHeader() {
           </ul>
         </nav>
       )}
-      <CustomerAuthDialog mode={authMode} onModeChange={setAuthMode} onClose={() => setAuthMode(null)} />
+      <CustomerAuthDialog mode={authMode} onModeChange={setAuthMode} onClose={closeCustomer} onDone={customerDone} />
+      <TailorAuthDialog open={tailorLogin} onClose={closeTailor} onRegister={() => router.push(routes.tailor.register)} />
     </header>
   );
 }

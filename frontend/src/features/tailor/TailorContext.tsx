@@ -63,7 +63,7 @@ export function TailorGate({ area, children }: { area: Area; children: ReactNode
   const { data, status, reload, setData } = useApi(session ? `tailor-me:${session.user.id}` : null, tailorApi.me);
 
   useEffect(() => {
-    if (session === null) router.replace(routes.tailor.root);
+    if (session === null) router.replace(routes.tailor.login);
   }, [session, router]);
 
   useEffect(() => {

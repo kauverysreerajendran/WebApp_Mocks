@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={appConfig.locale} className={`${dmSans.variable} antialiased`}>
-      <body className="flex min-h-dvh flex-col">
+      <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
         <noscript>
           <style>{`.reveal{opacity:1;transform:none}`}</style>
         </noscript>

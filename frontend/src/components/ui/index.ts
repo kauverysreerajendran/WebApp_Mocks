@@ -4,7 +4,7 @@ export { Card, CardHeader } from "./Card";
 export { Checkbox } from "./Checkbox";
 export { ChoiceGroup, type Choice } from "./ChoiceGroup";
 export { DateField } from "./DateField";
-export { Drawer, Modal } from "./Dialog";
+export { Drawer, Modal, useNativeDialog } from "./Dialog";
 export { Field, Input, Select, Textarea, type SelectOption } from "./Field";
 export { FileUpload } from "./FileUpload";
 export { GarmentImage } from "./GarmentImage";

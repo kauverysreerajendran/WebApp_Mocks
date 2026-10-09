@@ -17,7 +17,7 @@ interface BaseDialogProps {
  * Native <dialog> gives us focus trapping, Escape-to-close, inert background
  * and top-layer stacking without a dependency.
  */
-function useNativeDialog(open: boolean, onClose: () => void) {
+export function useNativeDialog(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {

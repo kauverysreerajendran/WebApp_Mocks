@@ -8,8 +8,9 @@ export const routes = {
   book: "/book",
   bookService: (slug: string) => `/book?service=${encodeURIComponent(slug)}`,
   confirmation: (id: number) => `/book/confirmed/${id}`,
-  login: "/login",
-  loginNext: (next: string) => `/login?next=${encodeURIComponent(next)}`,
+  /** Login is a popup over the home page (SiteHeader reads `?login=`), never a screen of its own. */
+  login: "/?login=customer",
+  loginNext: (next: string) => `/?login=customer&next=${encodeURIComponent(next)}`,
   account: "/account",
   accountOrder: (id: number) => `/account/orders/${id}`,
   track: "/track",
@@ -18,6 +19,8 @@ export const routes = {
 
   tailor: {
     root: "/tailor",
+    login: "/?login=tailor",
+    register: "/tailor#register",
     onboarding: "/tailor/onboarding",
     status: "/tailor/status",
     dashboard: "/tailor/dashboard",

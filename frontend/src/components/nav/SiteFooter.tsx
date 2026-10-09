@@ -71,7 +71,7 @@ export function SiteFooter() {
             <Clock size={14} aria-hidden className="text-accent" /> {c.hours}
           </p>
           <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-            <FooterLink href={routes.tailor.root}>{strings.footer.joinAsTailor}</FooterLink>
+            <FooterLink href={routes.tailor.register}>{strings.footer.joinAsTailor}</FooterLink>
             <FooterLink href={routes.admin.login}>{strings.footer.adminLogin}</FooterLink>
           </div>
         </div>

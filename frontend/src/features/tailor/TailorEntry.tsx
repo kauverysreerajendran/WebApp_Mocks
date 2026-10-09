@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowRight, CalendarDays, CircleCheck, FileText, Landmark, UserPlus } from "lucide-react";
+import { ArrowRight, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { Logo } from "@/components/nav/Logo";
-import { Button, Checkbox, Input, LeafOrnament, ListSkeleton, Photo, PhoneInput, type PhoneValue } from "@/components/ui";
+import { Button, Checkbox, Input, ListSkeleton, Photo, PhoneInput, type PhoneValue } from "@/components/ui";
 import { DEFAULT_COUNTRY } from "@/config/app";
 import { getCountry } from "@/config/countries";
 import { media } from "@/config/media";
@@ -16,10 +15,11 @@ import { isEmail } from "@/lib/validation";
 import { OtpLogin } from "@/features/auth/OtpLogin";
 import { ONBOARDING, OnboardingFrame } from "./OnboardingFrame";
 import { homeFor } from "./TailorContext";
+import { useAfterLogin } from "./TailorAuthDialog";
 
 const p = strings.tailorPortal;
 const REG_KEY = "tt.tailor.register";
-const HERO_ICONS = [FileText, CalendarDays, Landmark];
+const REGISTER_HASH = "register";
 
 interface Registration {
   name: string;
@@ -43,14 +43,6 @@ function saveRegistration(r: Registration) {
   } catch {
     // Prefill is a convenience; ignore storage failures.
   }
-}
-
-function useAfterLogin() {
-  const router = useRouter();
-  return async () => {
-    const profile = await tailorApi.me();
-    router.replace(homeFor(profile));
-  };
 }
 
 /** Right-hand panel of the Register screen. */
@@ -164,12 +156,21 @@ function RegisterStep({ onNext, onLogin }: { onNext: (r: Registration) => void; 
   );
 }
 
+function LoginRedirect() {
+  const router = useRouter();
+  useEffect(() => router.replace(routes.tailor.login), [router]);
+  return <ListSkeleton rows={2} className="mx-auto w-full max-w-md px-4 py-10" />;
+}
+
 /** B1 — Tailor portal entry: Register (steps 1–2 of 7) for new tailors, OTP login for existing partners. */
 export function TailorEntry() {
   const router = useRouter();
   const session = useSession("tailor");
   const afterLogin = useAfterLogin();
-  const [mode, setMode] = useState<"login" | "register" | "verify">("login");
+  // "/tailor#register" (header menu, footer) opens registration directly.
+  const [mode, setMode] = useState<"register" | "verify" | "login">(() =>
+    typeof window !== "undefined" && window.location.hash === `#${REGISTER_HASH}` ? "register" : "login",
+  );
   const [reg, setReg] = useState<Registration | null>(null);
 
   // Already signed in → route by onboarding status.
@@ -190,7 +191,7 @@ export function TailorEntry() {
         canStep={(i) => i === ONBOARDING.otp && reg !== null}
       >
         <RegisterStep
-          onLogin={() => setMode("login")}
+          onLogin={() => router.push(routes.tailor.login)}
           onNext={(r) => {
             setReg(r);
             setMode("verify");
@@ -218,85 +219,6 @@ export function TailorEntry() {
       </OnboardingFrame>
     );
 
-  return (
-    <main className="grid min-h-dvh flex-1 lg:grid-cols-[54%_1fr]">
-      {/* Left: brand story over the studio photo (reference: Tailor Partner Portal login). */}
-      <section className="relative overflow-hidden bg-blush-wash">
-        {/* Photo anchored bottom-right (fabrics low, wall above blends into the wash), so the copy sits on the wall. */}
-        <div className="absolute right-0 bottom-0 aspect-[1672/941] w-[135%] [mask-image:linear-gradient(to_bottom,transparent,black_30%)] lg:w-[150%]">
-          <Photo image={media.tailorLogin} className="absolute inset-0 bg-transparent" sizes="(min-width: 1280px) 80vw, 135vw" priority unoptimized />
-        </div>
-        <div aria-hidden className="absolute inset-0 bg-linear-to-r from-blush via-blush/85 to-blush/0 lg:via-blush/70" />
-        <LeafOrnament className="absolute -bottom-4 -left-4 hidden w-24 opacity-60 lg:block" />
-        <div className="relative flex h-full flex-col gap-6 px-5 py-6 md:px-10 lg:justify-between lg:py-10">
-          <Logo href={routes.home} tagline={p.partnerPortal} />
-          <div className="flex max-w-md flex-col gap-4">
-            <p className="text-xs font-medium tracking-[0.2em] text-accent uppercase">{p.heroEyebrow}</p>
-            <h1 className="text-3xl leading-tight md:text-[2.5rem]">{p.heroTitle}</h1>
-            <p className="text-sm leading-relaxed text-text md:text-base">{p.heroLead}</p>
-            <ul className="mt-1 hidden flex-col gap-3 sm:flex">
-              {p.heroPoints.map((point, i) => {
-                const Icon = HERO_ICONS[i];
-                return (
-                  <li key={point} className="flex items-center gap-3 text-sm text-text">
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-surface/80 text-accent shadow-card">
-                      <Icon size={17} strokeWidth={1.6} aria-hidden />
-                    </span>
-                    <span className="max-w-44 leading-snug">{point}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div className="hidden flex-col gap-2 lg:flex">
-            <span aria-hidden className="h-px w-10 bg-accent/50" />
-            <p className="text-xs tracking-[0.2em] text-accent uppercase">{p.heroFooter}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Right: Login | Register card. */}
-      <section className="flex items-center justify-center px-4 py-8 md:px-8">
-        <div className="w-full max-w-md rounded-card border border-border bg-surface p-5 shadow-card md:p-7">
-          <div role="tablist" aria-label={p.partnerPortal} className="mb-6 grid grid-cols-2 border-b border-border">
-            <button role="tab" aria-selected type="button" className="-mb-px border-b-2 border-accent pb-2.5 text-sm font-medium text-accent focus-ring">
-              {p.loginTabs.login}
-            </button>
-            <button role="tab" aria-selected={false} type="button" onClick={() => setMode("register")} className="-mb-px border-b-2 border-transparent pb-2.5 text-sm text-muted hover:text-text focus-ring">
-              {p.loginTabs.register}
-            </button>
-          </div>
-          <p className="text-xs font-medium tracking-[0.18em] text-accent uppercase">{p.loginEyebrow}</p>
-          <h2 className="mt-1 text-2xl">{p.loginTitle}</h2>
-          <p className="mb-5 text-sm text-muted">{p.loginLead}</p>
-          <OtpLogin
-            portal="tailor"
-            onSuccess={afterLogin}
-            sendLabel={
-              <>
-                {p.sendOtp} <ArrowRight size={16} aria-hidden />
-              </>
-            }
-          />
-          <div className="my-5 flex items-center gap-3 text-xs text-muted">
-            <span className="h-px flex-1 bg-border" />
-            {p.or}
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <div className="flex items-center gap-3 rounded-card bg-blush-wash p-3.5">
-            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-accent">
-              <UserPlus size={18} strokeWidth={1.6} aria-hidden />
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-sm font-semibold text-primary">{p.newTailorTitle}</span>
-              <span className="text-xs text-muted">{p.newTailorBody}</span>
-            </span>
-            <Button size="sm" variant="secondary" onClick={() => setMode("register")} className="shrink-0">
-              {p.registerNow}
-            </Button>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+  // Login is the popup on the home page, not a screen of its own.
+  return <LoginRedirect />;
 }

@@ -261,6 +261,29 @@ export const en = {
     welcome: (name: string) => `Welcome, ${name}! Your account is ready.`,
   },
 
+  /** Two-pane sign-in card (photo carousel + form) shared by the customer popup and the tailor portal. */
+  authCard: {
+    welcome: "Welcome",
+    back: "back",
+    join: "Join",
+    us: "us",
+    customerLead: "Sign in to continue your tailoring journey.",
+    customerJoinLead: "Create your account to book, customise and track orders.",
+    tailorLead: "Sign in to manage your orders and earnings.",
+    or: "or",
+    secure: "Your information is secure with us.",
+    prev: "Previous slide",
+    next: "Next slide",
+    goTo: (n: number) => `Go to slide ${n}`,
+    slides: [
+      { title: ["Stitched", "with You in Mind"], body: "Custom designs. Perfect fit. Everyday confidence." },
+      { title: ["Heritage", "in Every Thread"], body: "Hand-finished embroidery on fabrics you love." },
+      { title: ["Ready to Wear,", "Made for You"], body: "Kurtis, blouses and more, delivered to your door." },
+      { title: ["Crafted", "with Precision"], body: "Verified tailors measure, cut and stitch with care." },
+      { title: ["Your Design,", "Our Craft"], body: "Sketch it, pick the fabric, and we bring it to life." },
+    ],
+  },
+
   // ---------------- Customer website ----------------
   home: {
     eyebrow: "Welcome to Brand Name",

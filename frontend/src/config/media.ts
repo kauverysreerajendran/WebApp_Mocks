@@ -42,6 +42,15 @@ export const media = {
   tailorPortrait: { src: unsplash("photo-1755076348454-7c1424c111de"), alt: "Tailor working with a vintage sewing machine" },
 } satisfies Record<string, MediaImage>;
 
+/** Sign-in card carousel, in display order (frontend/assets/images 29, 2, 3, 6, 7). */
+export const authSlides: MediaImage[] = [
+  { src: "/media/auth-1.webp", alt: "Sunlit tailoring studio with a dress form, sewing machine and silks" },
+  { src: "/media/auth-2.webp", alt: "Folded rose silk with gold embroidery and a thread spool" },
+  { src: "/media/auth-3.webp", alt: "Embroidered kurtis hanging on a wooden rail" },
+  { src: "/media/auth-4.webp", alt: "Gold scissors, thread spools and a measuring tape on pink fabric" },
+  { src: "/media/auth-5.webp", alt: "Outfit sketches beside fabric swatches and a gold pen" },
+];
+
 /** One HD image per service slug (backend/app/seed_data.py): booking tiles, catalogue and order thumbnails. */
 const hd = (name: string) => `/media/${name}.webp`;
 export const serviceMedia: Record<string, MediaImage> = {

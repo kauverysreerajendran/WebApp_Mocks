@@ -16,13 +16,13 @@ export function useLoginOptions(): { href: string; label: string; body: string; 
   const tailor = useSession("tailor");
   return [
     { href: routes.login, label: m.customer, body: m.customerBody, icon: UserRound },
-    { href: tailor ? routes.tailor.dashboard : routes.tailor.root, label: m.tailor, body: m.tailorBody, icon: Store },
+    { href: tailor ? routes.tailor.dashboard : routes.tailor.login, label: m.tailor, body: m.tailorBody, icon: Store },
     { href: routes.admin.login, label: m.admin, body: m.adminBody, icon: ShieldCheck },
   ];
 }
 
 /** Header "Login ▾" dropdown: Customer · Tailor · Admin. */
-export function LoginMenu({ className, onCustomer }: { className?: string; onCustomer?: () => void }) {
+export function LoginMenu({ className, onCustomer, onTailor }: { className?: string; onCustomer?: () => void; onTailor?: () => void }) {
   const options = useLoginOptions();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -64,10 +64,13 @@ export function LoginMenu({ className, onCustomer }: { className?: string; onCus
               href={href}
               onClick={(e) => {
                 setOpen(false);
-                // Customers sign up / log in in a popup on the current page.
+                // Customers and signed-out tailors log in in a popup on the current page.
                 if (href === routes.login && onCustomer) {
                   e.preventDefault();
                   onCustomer();
+                } else if (href === routes.tailor.login && onTailor) {
+                  e.preventDefault();
+                  onTailor();
                 }
               }}
               className="flex items-center gap-3 rounded-control px-2.5 py-2 hover:bg-surface-muted focus-ring"

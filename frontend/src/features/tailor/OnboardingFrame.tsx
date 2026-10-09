@@ -52,7 +52,7 @@ export function OnboardingFrame({
               leftIcon={<LogOut size={16} aria-hidden />}
               onClick={() => {
                 sessions.tailor.set(null);
-                router.replace(routes.tailor.root);
+                router.replace(routes.tailor.login);
               }}
             >
               {strings.common.logout}

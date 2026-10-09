@@ -2,15 +2,16 @@
 
 import { ArrowRight } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Button, Checkbox, Input, Modal, PhoneInput, Textarea, useToast, type PhoneValue } from "@/components/ui";
+import { Button, Checkbox, Input, PhoneInput, Textarea, useToast, type PhoneValue } from "@/components/ui";
 import { DEFAULT_COUNTRY, appConfig } from "@/config/app";
 import { getCountry } from "@/config/countries";
 import { strings } from "@/i18n";
 import { errorMessage } from "@/lib/api/client";
 import { authApi } from "@/lib/api/endpoints";
 import { sessions } from "@/lib/auth/session";
-import { cn } from "@/lib/cn";
 import { compact, isEmail, isPostal } from "@/lib/validation";
+import { AuthCard, AuthSendLabel } from "./AuthCard";
+import { AuthDialog } from "./AuthDialog";
 import { OtpLogin } from "./OtpLogin";
 
 const c = strings.customerAuth;
@@ -114,7 +115,7 @@ function SignUpPanel({ onDone, onLogin }: { onDone: () => void; onLogin: () => v
   const postalLabel = strings.fields[getCountry(f.phone.country).postalLabelKey];
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <fieldset className="grid gap-3 sm:grid-cols-2">
+      <fieldset className="grid gap-3">
         <legend className="mb-2 text-xs font-semibold tracking-[0.12em] text-accent uppercase">{c.basicDetails}</legend>
         <Input label={strings.fields.name} value={f.name} onChange={(e) => set("name", e.target.value)} error={errors.name} autoComplete="name" />
         <PhoneInput value={f.phone} onChange={(v) => set("phone", v)} error={errors.phone} />
@@ -126,10 +127,9 @@ function SignUpPanel({ onDone, onLogin }: { onDone: () => void; onLogin: () => v
           onChange={(e) => set("email", e.target.value)}
           error={errors.email}
           autoComplete="email"
-          containerClassName="sm:col-span-2"
         />
       </fieldset>
-      <fieldset className="grid gap-3 sm:grid-cols-2">
+      <fieldset className="grid grid-cols-2 gap-3">
         <legend className="mb-2 text-xs font-semibold tracking-[0.12em] text-accent uppercase">{c.addressDetails}</legend>
         <Textarea
           label={strings.fields.address}
@@ -139,7 +139,7 @@ function SignUpPanel({ onDone, onLogin }: { onDone: () => void; onLogin: () => v
           value={f.address}
           onChange={(e) => set("address", e.target.value)}
           autoComplete="street-address"
-          containerClassName="sm:col-span-2"
+          containerClassName="col-span-2"
         />
         <Input label={strings.fields.city} optional value={f.city} onChange={(e) => set("city", e.target.value)} autoComplete="address-level2" />
         <Input
@@ -180,42 +180,78 @@ function SignUpPanel({ onDone, onLogin }: { onDone: () => void; onLogin: () => v
   );
 }
 
-/** Customer Sign Up / Login popup opened from the site header — no page change. */
+/** Customer Sign Up / Log in card: used in the header popup and on the /login page. */
+export function CustomerAuthCard({
+  mode,
+  onModeChange,
+  onDone,
+  onClose,
+  titleId,
+  className,
+}: {
+  mode: CustomerAuthMode;
+  onModeChange: (m: CustomerAuthMode) => void;
+  onDone: () => void;
+  onClose?: () => void;
+  titleId?: string;
+  className?: string;
+}) {
+  const a = strings.authCard;
+  return (
+    <AuthCard
+      titleId={titleId}
+      onClose={onClose}
+      className={className}
+      heading={mode === "login" ? [a.welcome, a.back] : [a.join, a.us]}
+      lead={mode === "login" ? a.customerLead : a.customerJoinLead}
+      tabs={[
+        { key: "signup", label: c.signUpTab },
+        { key: "login", label: c.loginTab },
+      ]}
+      active={mode}
+      onTab={onModeChange}
+    >
+      {mode === "signup" ? (
+        <SignUpPanel onDone={onDone} onLogin={() => onModeChange("login")} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-muted">{strings.auth.phoneBody}</p>
+          <OtpLogin portal="customer" askName onSuccess={onDone} sendLabel={sendLabel} />
+        </div>
+      )}
+    </AuthCard>
+  );
+}
+
+const sendLabel = <AuthSendLabel label={strings.auth.sendCode} />;
+
+/** Customer Sign Up / Login popup — opens over the current page. */
 export function CustomerAuthDialog({
   mode,
   onModeChange,
   onClose,
+  onDone = onClose,
 }: {
   mode: CustomerAuthMode | null;
   onModeChange: (m: CustomerAuthMode) => void;
   onClose: () => void;
+  /** After a successful sign-in / sign-up; defaults to closing the popup. */
+  onDone?: () => void;
 }) {
   return (
-    <Modal open={mode !== null} onClose={onClose} title={mode === "login" ? c.loginTitle : c.signUpTitle} size="lg">
-      <div role="tablist" aria-label={c.signUpTitle} className="mb-5 grid grid-cols-2 border-b border-border">
-        {(["signup", "login"] as const).map((m) => (
-          <button
-            key={m}
-            role="tab"
-            type="button"
-            aria-selected={mode === m}
-            onClick={() => onModeChange(m)}
-            className={cn(
-              "-mb-px border-b-2 pb-2.5 text-sm focus-ring",
-              mode === m ? "border-accent font-medium text-accent" : "border-transparent text-muted hover:text-text",
-            )}
-          >
-            {m === "signup" ? c.signUpTab : c.loginTab}
-          </button>
-        ))}
-      </div>
-      {mode === "signup" && <SignUpPanel onDone={onClose} onLogin={() => onModeChange("login")} />}
-      {mode === "login" && (
-        <div className="mx-auto flex max-w-sm flex-col gap-3">
-          <p className="text-sm text-muted">{strings.auth.phoneBody}</p>
-          <OtpLogin portal="customer" askName onSuccess={onClose} />
-        </div>
-      )}
-    </Modal>
+    <AuthDialog open={mode !== null} onClose={onClose}>
+      {(titleId) =>
+        mode !== null && (
+          <CustomerAuthCard
+            titleId={titleId}
+            mode={mode}
+            onModeChange={onModeChange}
+            onDone={onDone}
+            onClose={onClose}
+            className="max-h-[calc(100dvh-2rem)]"
+          />
+        )
+      }
+    </AuthDialog>
   );
 }

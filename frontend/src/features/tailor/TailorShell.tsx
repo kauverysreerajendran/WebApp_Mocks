@@ -42,7 +42,7 @@ function useLogout() {
   const router = useRouter();
   return () => {
     sessions.tailor.set(null);
-    router.replace(routes.tailor.root);
+    router.replace(routes.tailor.login);
   };
 }
 
